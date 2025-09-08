@@ -1,6 +1,6 @@
 import logging
-import config
-from venv import logger
+# import config_logger
+# from venv import logger
 from elasticsearch import Elasticsearch
 from datetime import datetime
 
@@ -8,8 +8,8 @@ class Logger:
     _logger = None
 
     @classmethod
-    def get_logger(cls, name="muazin_loger", es_host=config.ES_HOST,
-        index=config.ES_INDEX, level=logging.DEBUG):
+    def get_logger(cls, name="muazin_loger", es_host="http://localhost:9200",
+        index="logs", level=logging.DEBUG):
         if cls._logger:
             return cls._logger
         logger = logging.getLogger(name)

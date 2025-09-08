@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from KafkaPublisher import KafkaPublisher
+from kafka_producer import KafkaPublisher
 from app.log.logger import Logger
 import time
 
