@@ -8,6 +8,7 @@ class MongoHandler:
         self.collection_name = collection_name
         self.client = None
         self.collection = None
+        self.db = None
         self.connect()
 
     def connect(self):
