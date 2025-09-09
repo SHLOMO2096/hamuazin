@@ -9,6 +9,9 @@ from app.log.logger import Logger
 logger = Logger.get_logger()
 
 class ElasticManager:
+    """
+    Manager to consume messages from Kafka and index them into Elasticsearch.
+    """
     def __init__(self):
         self.kafka_consumer = KafkaSubscriber(
             config.KAFKA_TOPIC,
@@ -17,13 +20,14 @@ class ElasticManager:
         self.elastic_client = ElasticSearchClient(config.ES_HOST, config.ES_INDEX)
 
     def consume_messages_from_kafka(self):
-        logger.info("Consumer started listening to Kafka...")
-        print("Consumer started listening to Kafka...")
+        """
+        Start consuming messages from Kafka.
+        """
+        logger.info("Consumer_elastic started listening to Kafka...")
         try:
             for message in self.kafka_consumer.listen():
                 logger.info(f"Received message: {message}")
-                print(f"Received message: {message}")
-                audio_path = config.AUDIO_PATH + message.get('file_path')
+                audio_path = message["file_path"]
                 if audio_path:
                     uuid = self.file_uuid(audio_path)
                     doc = {
@@ -32,23 +36,27 @@ class ElasticManager:
                     }
                     self.send_to_elastic(doc)
                 else:
-                    print("No audio path found in message.")
                     logger.warning("No audio path found in message.")
         except Exception as e:
-            print(f"Error consuming saving: {e}")
             logger.error(f"Error consuming saving: {e}")
 
 
     def send_to_elastic(self, doc):
+        """
+        Send a document to Elasticsearch.
+        """
         try:
             clean_doc = self.prepare_for_elastic(doc)
             self.elastic_client.save_transcription(clean_doc)
-            print(f"Saved to Elastic: {clean_doc}")
+            logger.info(f"Saved to Elastic: {clean_doc}")
         except Exception as e:
-            print(f"Elastic error: {e}")
+            logger.error(f"Elastic error: {e}")
 
 
     def prepare_for_elastic(self, doc):
+        """
+        Prepare document for Elasticsearch by cleaning it.
+        """
         doc_clean = {}
         for k, v in doc.items():
             if k == "_id":
@@ -62,7 +70,10 @@ class ElasticManager:
         return doc_clean
 
 
-    def file_uuid(self,path):
+    def file_uuid(self, path):
+        """
+        Generate a UUID for the given file path.
+        """
         stat = os.stat(path)
         data = f"{os.path.basename(path)}-{stat.st_size}-{stat.st_mtime}"
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, data))

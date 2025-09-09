@@ -3,6 +3,9 @@ import json
 import config
 
 class KafkaSubscriber:
+    """
+    Subscriber for consuming messages from a Kafka topic.
+    """
     def __init__(self, topic: str, group_id: str):
         self.consumer = KafkaConsumer(
             bootstrap_servers=config.KAFKA_BOOTSTRAP,

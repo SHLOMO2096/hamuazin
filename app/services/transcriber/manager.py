@@ -46,10 +46,10 @@ class TranscriberManager:
             f.write(audio_file)
 
         transcript = self.transcribe("temp_audio.wav")
-        
+
         # update in ElasticSearch
         self.es_client.update(
-            index="audio_index",
+            index=config_transcriber.ES_INDEX,
             id=uuid,
             body={"doc": {"transcript": transcript}}
         )

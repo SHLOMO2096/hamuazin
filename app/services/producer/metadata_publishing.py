@@ -13,10 +13,10 @@ class Metadata_publishing:
 
     def get_file_metadata(self, file_path: Path):
         return {
-            "file_path": str(file_path),
+            "file_path": file_path,
             "name": file_path.name,
             "size": file_path.stat().st_size,
-            "created": file_path.stat().st_birthtime, #st_ctime
+            "created": file_path.stat().st_ctime, #st_ctime
             "modified": file_path.stat().st_mtime,
             "suffix": file_path.suffix
         }
@@ -27,11 +27,17 @@ class Metadata_publishing:
             for file in Path(self.path).glob('*'):
                 if file.is_file() and str(file) not in processed_files:
                     metadata = self.get_file_metadata(file)
-                    json_metadata = json.dumps(metadata)
+                    json_metadata = str(json.dumps(metadata))
                     self.kafka_producer.publish(json_metadata)
-                    print(f"Sent metadata for {file.name} to Kafka")
+                    logger.info(json_metadata)
                     logger.info(f"Sent metadata for {file.name} to Kafka")
                     processed_files.add(str(file))
             time.sleep(10)
 
 
+if __name__ == "__main__":
+    logger = Logger.get_logger()
+    kafka_producer = KafkaPublisher(kafka_broker="localhost:9092", kafka_topic="podcasts")
+    producer = Metadata_publishing(kafka_producer=kafka_producer, path="C:\\Users\\shlomo\\Downloads\\podcasts\\download (28).wav")
+    logger.info("Starting to send metadata to Kafka topic 'podcasts'")
+    print(type(producer.get_file_metadata(Path("C:\\Users\\shlomo\\Downloads\\podcasts\\download (28).wav"))))

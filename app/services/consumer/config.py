@@ -9,4 +9,4 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 ES_HOST = os.getenv("ELASTIC_URI", "http://localhost:9200")
 ES_INDEX = os.getenv("ES_INDEX", "podcasts")
 KAFKA_ELASTIC_GROUP = os.getenv("KAFKA_ELASTIC_GROUP", "elastic_group")
-AUDIO_PATH =  "/data/clips/"
+# AUDIO_PATH =  "/data/clips/"
