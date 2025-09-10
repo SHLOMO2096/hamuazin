@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from app.log.logger import Logger
+from app.services.logger import Logger
 # from pymongo.errors import ConnectionFailure, OperationFailure
 
 logger = Logger.get_logger()
@@ -24,6 +24,7 @@ class MongoHandler:
             self.db = self.client[self.db_name]
             self.collection = self.db[self.collection_name]
             logger.info(f"Connected to MongoDB: {self.db_name}/{self.collection_name}")
+
         except Exception as e:
             logger.error(f"MongoDB connection error: {e}")
             self.client = None
@@ -37,7 +38,6 @@ class MongoHandler:
 
     def insert_document(self, doc):
         if self.collection is None:
-            logger.error("Not connected to MongoDB. Call connect() first.")
             raise Exception("Not connected to MongoDB. Call connect() first.")
         return self.collection.insert_one(doc)
 
