@@ -36,7 +36,7 @@ class Metadata_publishing:
             for file in Path(self.path).glob('*'):
                 if file.is_file() and str(file) not in processed_files:
                     metadata = self.get_file_metadata(file)
-                    json_metadata = json.dumps(metadata)
+                    json_metadata = json.dumps(metadata, default=str)
                     self.kafka_producer.publish(json_metadata)
                     logger.info(json_metadata)
                     logger.info(f"Sent metadata for {file.name} to Kafka")
