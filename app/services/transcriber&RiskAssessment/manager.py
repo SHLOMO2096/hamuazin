@@ -1,4 +1,5 @@
 import gridfs
+import risk_assessment
 import config_transcriber
 from mongo_client import MongoHandler
 from elastic_client import ElasticSearchClient
@@ -17,6 +18,9 @@ class TranscriberManager:
         self.whisper_model = WhisperModel("base") 
         self.model = WhisperModel("base", device="cpu", compute_type="int8")
         self.fs = gridfs.GridFS(self.mongo_handler.db)
+        self.risk = risk_assessment.RiskAssessment()
+        
+
 
     
     def transcribe(self, audio_path):
@@ -46,12 +50,21 @@ class TranscriberManager:
             f.write(audio_file)
 
         transcript = self.transcribe("temp_audio.wav")
+        # Perform risk assessment
+        dictionary_of_hazard_values = self.risk.risk_assessment(transcript)
+        logger.info(f"Transcript for UUID={uuid}: {transcript}")
+            # save transcript and risk assessment results
 
         # update in ElasticSearch
         self.es_client.update(
             index=config_transcriber.ES_INDEX,
             id=uuid,
-            body={"doc": {"transcript": transcript}}
+            body={"doc": {
+                "transcript": transcript,
+                "bds_percent": dictionary_of_hazard_values.get("bds_percent"),
+                "is_bds": dictionary_of_hazard_values.get("is_bds"),
+                "bds_threat_level": dictionary_of_hazard_values.get("bds_threat_level")
+            }}
         )
         # update in MongoDB (flag that transcription exists)
         self.mongo_handler.update_document(  
@@ -59,7 +72,7 @@ class TranscriberManager:
             {"$set": {"transcribed": True, "transcript": transcript}}
         )
 
-        logger.info(f"Transcribed and updated UUID={uuid}")
+        logger.info(f"Transcribed and risk assessed update UUID={uuid}")
 
 
     def main(self):
