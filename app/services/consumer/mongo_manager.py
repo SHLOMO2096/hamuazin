@@ -1,4 +1,5 @@
 import config
+import json
 import bson
 from gridfs import GridFS
 import uuid, os
@@ -17,17 +18,38 @@ class MongoManager:
         self.mongo_handler = MongoHandler(config.MONGO_URI, config.MONGO_DB, config.MONGO_COLLECTION)
 
     def consume_messages_from_kafka(self):
+        global payload
         logger.info("Consumer_mongo started listening to Kafka...")
         try:
             for message in self.kafka_consumer.listen():
                 logger.info(f"Received message: {message}")
-                audio_path = message["file_path"]
+                if hasattr(message, "value"):
+                    payload = message.value
+                else:
+                    payload = message
+
+                if isinstance(payload, bytes):
+                    payload = payload.decode("utf-8")
+
+                if isinstance(payload, str):
+                    try:
+                        msg = json.loads(payload)
+                    except Exception as e:
+                        logger.error(f"Invalid JSON: {e} | payload={payload}")
+                        continue
+                elif isinstance(payload, dict):
+                    msg = payload
+                else:
+                    logger.error(f"Unexpected payload type: {type(payload)}")
+                    continue
+
+                audio_path = msg.get("file_path")
                 if audio_path:
-                    uuid = self.file_uuid(audio_path)
+                    f_uuid = self.file_uuid(audio_path)
                     file_id = self.save_audio_minimal(audio_path)
                     doc = {
                         "file_id": file_id,
-                        "uuid": uuid,
+                        "uuid": f_uuid,
                     }
                     self.send_to_mongo(doc)
                 else:

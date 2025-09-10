@@ -8,9 +8,7 @@ class RiskAssessment:
     """
     Class to perform risk assessment on a given text based on hostile and non-hostile word lists.
     """
-    def __init__(self,text:str):
-        self.text = text
-        self.text_list = text.split()
+    def __init__(self):
         self.hostile_words_coded = config_transcriber.HOSTILE_WORDS_CODED
         self.non_hostile_words_coded = config_transcriber.NON_HOSTILE_WORDS_CODED
         self.decoder_hostile = decoder.Decoder(self.hostile_words_coded)
@@ -22,7 +20,7 @@ class RiskAssessment:
 
 
         
-    def finding_word_frequency(text:list,list_words:list):
+    def finding_word_frequency(self, text:list, list_words:list):
         """
         Find the frequency of words from list_words in the given text.
         """
@@ -41,13 +39,14 @@ class RiskAssessment:
 
 
 
-    def risk_assessment(self):
+    def risk_assessment(self, text:str):
         """
         Perform risk assessment based on the frequency of hostile and non-hostile words.
         """
-        total_hostile_impressions = self.finding_word_frequency(self.text_list,self.hostile_list)
-        total_non_hostile_impressions = self.finding_word_frequency(self.text_list,self.not_hostile_list)
-        total_words = len(self.text_list)
+        text = text.lower().split()
+        total_hostile_impressions = self.finding_word_frequency(text,self.hostile_list)
+        total_non_hostile_impressions = self.finding_word_frequency(text,self.not_hostile_list)
+        total_words = len(text)
         bds_percent = ((total_hostile_impressions *2) + total_non_hostile_impressions) / total_words * 100
         is_bds = bds_percent > 10
         if bds_percent > 10:
